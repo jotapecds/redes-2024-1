@@ -26,7 +26,7 @@ def getTraducao(termo, idioma):
             "I": "local area network (LAN)",
             "E": "red de área local (LAN)"
         },
-        "rede privada virtual (VPN):": {
+        "rede privada virtual (VPN)": {
             "I": "virtual private network (VPN)", 
             "E": "red privada virtual(VPN)"
         },
@@ -49,22 +49,25 @@ def getTraducao(termo, idioma):
 
 def main():
     HOST = '127.0.0.1'
-    PORT = 12345
+    PORT = 2319
 
-    servidor = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     servidor.bind((HOST, PORT))
+    servidor.listen(1)
 
-    print("Servidor UDP está aguardando conexões...")
+    print("O servidor TCP já está escutando na porta", PORT)
 
     while True:
-        data, addr = servidor.recvfrom(1024)
-        palavra = data.decode()
-        
-        data, addr = servidor.recvfrom(1024)
-        idioma = data.decode()
+        conn, addr = servidor.accept()
+        print("Conexão estabelecida com ", addr)
 
-        traducao = getTraducao(palavra, idioma)
-        servidor.sendto(traducao.encode(), addr)
+        termo = conn.recv(1024).decode()
+        idioma = conn.recv(1024).decode()
+
+        traducao = getTraducao(termo, idioma)
+        conn.send(traducao.encode())
+
+        conn.close()
 
 if __name__ == "__main__":
     main()
